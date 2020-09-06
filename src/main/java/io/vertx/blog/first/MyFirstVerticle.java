@@ -5,6 +5,7 @@ import io.vertx.core.Future;
 import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerResponse;
 
+import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
@@ -25,6 +26,7 @@ public class MyFirstVerticle extends AbstractVerticle {
 		
 		router.route("/hi").handler(this::getHi);
 		router.route("/bye").handler(this::getBye);
+		router.route("/assets/*").handler(StaticHandler.create("assets"));
 		
 		vertx
 			.createHttpServer()
