@@ -23,6 +23,9 @@ public class MyFirstVerticle extends AbstractVerticle {
 				.end("<h1>Hello from my first Vert.x 3 application</h1>");
 		});
 		
+		router.route("/hi").handler(this::getHi);
+		router.route("/bye").handler(this::getBye);
+		
 		vertx
 			.createHttpServer()
 			.requestHandler(router::accept)
@@ -38,7 +41,21 @@ public class MyFirstVerticle extends AbstractVerticle {
 			);
 	}
 	
-	/*private Route getHello(Handler<RoutingContext> requestHandler) {
-		return null;
-	}*/
+	private Route getHi(RoutingContext routingContext) {
+		HttpServerResponse response = routingContext.response();
+			response
+				.putHeader("content-type", "text/html")
+				.end("<h1>Hi! I'm a method reference! =)</h1>");
+				
+		return routingContext.currentRoute();
+	}
+	
+	private Route getBye(RoutingContext routingContext) {
+		HttpServerResponse response = routingContext.response();
+			response
+				.putHeader("content-type", "text/html")
+				.end("<h1>Bye! And good night!</h1>");
+				
+		return routingContext.currentRoute();
+	}
 }
