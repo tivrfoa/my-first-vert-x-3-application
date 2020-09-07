@@ -9,6 +9,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.Json;
 
+import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 import io.vertx.ext.web.Route;
 import io.vertx.ext.web.Router;
@@ -45,6 +46,8 @@ public class MyFirstVerticle extends AbstractVerticle {
 		
 		// Whisky API
 		router.get("/api/whiskies").handler(this::getAll);
+		router.route("/api/whiskies*").handler(BodyHandler.create());
+		router.post("/api/whiskies").handler(this::addOne);
 		
 		vertx
 			.createHttpServer()
@@ -83,5 +86,17 @@ public class MyFirstVerticle extends AbstractVerticle {
 	  routingContext.response()
 		  .putHeader("content-type", "application/json; charset=utf-8")
 		  .end(Json.encodePrettily(products.values()));
+	}
+	
+	private void addOne(RoutingContext routingContext) {
+		System.out.println("routingContext.getBodyAsString() = " +
+			routingContext.getBodyAsString());
+	  final Whisky whisky = Json.decodeValue(routingContext.getBodyAsString(),
+		  Whisky.class);
+	  products.put(whisky.getId(), whisky);
+	  routingContext.response()
+		  .setStatusCode(201)
+		  .putHeader("content-type", "application/json; charset=utf-8")
+		  .end(Json.encodePrettily(whisky));
 	}
 }
