@@ -21,6 +21,8 @@ import java.net.ServerSocket;
 @RunWith(VertxUnitRunner.class)
 public class MyFirstVerticleTest {
 	
+	private static int counter;
+	
 	private Vertx vertx;
 	private int port;
 	
@@ -29,6 +31,7 @@ public class MyFirstVerticleTest {
 		ServerSocket socket = new ServerSocket(0);
 		port = socket.getLocalPort();
 		socket.close();
+		System.out.println(++counter + ") Running on port: " + port);
 		
 		DeploymentOptions options = new DeploymentOptions()
 			.setConfig(new JsonObject().put("http_port", port));
