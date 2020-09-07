@@ -60,9 +60,13 @@ public class MyFirstVerticleTest {
 	@Test
 	public void checkThatTheIndexPageIsServed(TestContext context) {
 		Async async = context.async();
-		getNow(response -> {
-				response.handler(body -> {
-					context.assertTrue(body.toString().contains("Hello"));
+		getNow("/assets/index.html",
+			response -> {
+				context.assertEquals(response.statusCode(), 200);
+				context.assertEquals(response.headers().get("content-type"), "text/html");
+				response.bodyHandler(body -> {
+					context.assertTrue(body.toString()
+						.contains("<title>My Whisky Collection</title>"));
 					async.complete();
 				});
 			}
@@ -70,6 +74,14 @@ public class MyFirstVerticleTest {
 	}
 	
 	private void getNow(Handler<HttpClientResponse> handler) {
-		vertx.createHttpClient().getNow(port, "localhost", "/", handler);
+		getNow("localhost", "/", handler);
+	}
+	
+	private void getNow(String path, Handler<HttpClientResponse> handler) {
+		getNow("localhost", path, handler);
+	}
+	
+	private void getNow(String host, String path, Handler<HttpClientResponse> handler) {
+		vertx.createHttpClient().getNow(port, host, path, handler);
 	}
 }
