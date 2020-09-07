@@ -3,6 +3,7 @@ package io.vertx.blog.first;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.Json;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.http.HttpClientResponse;
 
@@ -71,6 +72,43 @@ public class MyFirstVerticleTest {
 				});
 			}
 		);
+	}
+	
+	@Test
+	public void checkThatWeCanAdd(TestContext context) {
+		Async async = context.async();
+		final String json = Json.encodePrettily(new Whisky("Jameson", "Ireland"));
+		postJson("/api/whiskies", json, response -> {
+			context.assertEquals(response.statusCode(), 201);
+			context.assertTrue(response.headers().get("content-type")
+				.contains("application/json"));
+			response.bodyHandler(body -> {
+				final Whisky whisky = Json.decodeValue(body.toString(), Whisky.class);
+				context.assertEquals(whisky.getName(), "Jameson");
+				context.assertEquals(whisky.getOrigin(), "Ireland");
+				context.assertNotNull(whisky.getId());
+				async.complete();
+			});
+        });
+	}
+	
+	private void postJson(String json, Handler<HttpClientResponse> handler) {
+		postJson("localhost", "/", json, handler);
+	}
+	
+	private void postJson(String path, String json, Handler<HttpClientResponse> handler) {
+		postJson("localhost", path, json, handler);
+	}
+	
+	private void postJson(String host, String path, String json,
+			Handler<HttpClientResponse> handler) {
+		final String length = Integer.toString(json.length());
+		vertx.createHttpClient().post(port, host, path)
+			.putHeader("content-type", "application/json")
+			.putHeader("content-length", length)
+			.handler(handler)
+			.write(json)
+			.end();
 	}
 	
 	private void getNow(Handler<HttpClientResponse> handler) {
