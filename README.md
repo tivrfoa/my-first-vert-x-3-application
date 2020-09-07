@@ -4,6 +4,7 @@
  1. [My first Vert.x 3 Application](https://vertx.io/blog/my-first-vert-x-3-application/)
  2. [Vert.x Application Configuration](https://vertx.io/blog/vert-x-application-configuration/)
  3. [Some Rest with Vert.x](https://vertx.io/blog/some-rest-with-vert-x/)
+ 4. [Unit and Integration Tests](https://vertx.io/blog/unit-and-integration-tests/)
 
 
 
