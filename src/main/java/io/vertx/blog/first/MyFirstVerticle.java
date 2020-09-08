@@ -18,6 +18,7 @@ import io.vertx.ext.web.RoutingContext;
 public class MyFirstVerticle extends AbstractVerticle {
 	
 	private Map<Integer, Whisky> products = new LinkedHashMap<>();
+	private int port;
 	
 	private void createSomeData() {
 		Whisky bowmore = new Whisky("Bowmore 15 Years Laimrig", "Scotland, Islay");
@@ -28,6 +29,8 @@ public class MyFirstVerticle extends AbstractVerticle {
 	
 	@Override
 	public void start(Future<Void> fut) {
+		
+		port = config().getInteger("http_port", 8080);
 		
 		createSomeData();
 		
@@ -54,7 +57,7 @@ public class MyFirstVerticle extends AbstractVerticle {
 			.createHttpServer()
 			.requestHandler(router::accept)
 			.listen(
-				config().getInteger("http_port", 8080),
+				port,
 				result -> {
 					if (result.succeeded()) {
 						fut.complete();
@@ -63,6 +66,10 @@ public class MyFirstVerticle extends AbstractVerticle {
 					}
 				}
 			);
+			
+		System.out.println("*************************************** " +
+				"Vertx Application Started on port: " + port +
+				" *************************");
 	}
 	
 	private Route getHi(RoutingContext routingContext) {
@@ -84,6 +91,7 @@ public class MyFirstVerticle extends AbstractVerticle {
 	}
 	
 	private void getAll(RoutingContext routingContext) {
+		System.out.println("Getting all whiskies");
 	  routingContext.response()
 		  .putHeader("content-type", "application/json; charset=utf-8")
 		  .end(Json.encodePrettily(products.values()));

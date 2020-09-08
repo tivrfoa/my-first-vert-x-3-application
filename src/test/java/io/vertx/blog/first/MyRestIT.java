@@ -13,8 +13,17 @@ public class MyRestIT {
 	
 	@BeforeClass
 	public static void configureRestAssured() {
+		try {
+			Thread.sleep(500);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		RestAssured.baseURI = "http://localhost";
-		RestAssured.port = Integer.getInteger("http_port", 8080);
+		// RestAssured.port = Integer.getInteger("http_port", 8080);
+		RestAssured.port = 8080;
+		
+		System.out.printf("RestAssured will try to connect to: %s:%s\n",
+				RestAssured.baseURI, RestAssured.port);
 	}
 	
 	@AfterClass
@@ -25,11 +34,26 @@ public class MyRestIT {
 	@Test
 	public void checkThatWeCanRetrieveIndividualProduct() {
 		// Get the list of bottles, ensure it's a success and extract the first id.
-		final int id = get("/api/whiskies").then()
+		/*final int id = get("/api/whiskies").then()
 		  .assertThat()
 		  .statusCode(200)
 		  .extract()
-		  .jsonPath().getInt("find { it.name=='Bowmore 15 Years Laimrig' }.id");
+		  .jsonPath().getInt("find { it.name=='Bowmore 15 Years Laimrig' }.id");*/
+		
+		final Whisky[] whiskies = get("/api/whiskies").then()
+		  .assertThat()
+		  .statusCode(200)
+		  .extract()
+		  .as(Whisky[].class);
+		  
+		final Whisky whisky = whiskies[0];
+		
+		System.out.println(whisky);
+		  
+		final int id = whisky.getId();
+		
+		System.out.println("Got whisky id: " + id);
+		
 		// Now get the individual resource and check the content
 		get("/api/whiskies/" + id).then()
 		  .assertThat()

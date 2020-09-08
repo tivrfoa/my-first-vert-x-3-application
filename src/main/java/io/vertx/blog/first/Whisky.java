@@ -42,4 +42,11 @@ public class Whisky {
   public void setOrigin(String origin) {
     this.origin = origin;
   }
+  
+	@Override
+	public String toString() {
+	  return "{ id: " + id + ",\n" +
+	         "name: " + name + ",\n" +
+	         "origin: " + origin;
+	}
 }
