@@ -49,6 +49,7 @@ public class MyFirstVerticle extends AbstractVerticle {
 		
 		// Whisky API
 		router.get("/api/whiskies").handler(this::getAll);
+		router.get("/api/whiskies/:id").handler(this::getOne);
 		router.route("/api/whiskies*").handler(BodyHandler.create());
 		router.post("/api/whiskies").handler(this::addOne);
 		router.delete("/api/whiskies/:id").handler(this::deleteOne);
@@ -95,6 +96,23 @@ public class MyFirstVerticle extends AbstractVerticle {
 	  routingContext.response()
 		  .putHeader("content-type", "application/json; charset=utf-8")
 		  .end(Json.encodePrettily(products.values()));
+	}
+	
+	private void getOne(RoutingContext routingContext) {
+		String id = routingContext.request().getParam("id");
+		if (id == null) {
+			routingContext.response().setStatusCode(400).end();
+		} else {
+			final Integer idAsInteger = Integer.valueOf(id);
+			Whisky whisky = products.get(idAsInteger);
+			if (whisky == null) {
+				routingContext.response().setStatusCode(400).end();
+			} else {
+				routingContext.response()
+					.putHeader("content-type", "application/json; charset=utf-8")
+					.end(Json.encodePrettily(whisky));
+			}
+		}
 	}
 	
 	private void addOne(RoutingContext routingContext) {

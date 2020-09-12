@@ -3,6 +3,10 @@ package io.vertx.blog.first;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+
+/**
+ * Are you drunk my friend?
+ */
 public class Whisky {
 	
 	private static final AtomicInteger COUNTER = new AtomicInteger();
