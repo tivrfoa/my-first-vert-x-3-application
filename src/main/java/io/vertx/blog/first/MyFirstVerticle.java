@@ -1,7 +1,9 @@
 package io.vertx.blog.first;
 
+import java.util.List;
 import java.util.Map;
 import java.util.LinkedHashMap;
+import java.util.stream.Collectors;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.AsyncResult;
@@ -28,17 +30,10 @@ public class MyFirstVerticle extends AbstractVerticle {
 	private int port;
 	private JDBCClient jdbc;
 	
-	/*private void createSomeData() {
-		Whisky bowmore = new Whisky("Bowmore 15 Years Laimrig", "Scotland, Islay");
-		products.put(bowmore.getId(), bowmore);
-		Whisky talisker = new Whisky("Talisker 57° North", "Scotland, Island");
-		products.put(talisker.getId(), talisker);
-	}*/
-	
 	@Override
 	public void start(Future<Void> fut) {
 		
-		port = config().getInteger("http_port", 8080);
+		port = config().getInteger("http.port", 8080);
 		
 		jdbc = JDBCClient.createShared(vertx, config(), "My-Whisky-Collection");
 
@@ -86,9 +81,10 @@ public class MyFirstVerticle extends AbstractVerticle {
 		
 		// Whisky API
 		router.get("/api/whiskies").handler(this::getAll);
-		router.get("/api/whiskies/:id").handler(this::getOne);
 		router.route("/api/whiskies*").handler(BodyHandler.create());
 		router.post("/api/whiskies").handler(this::addOne);
+		router.get("/api/whiskies/:id").handler(this::getOne);
+		router.put("/api/whiskies/:id").handler(this::updateOne);
 		router.delete("/api/whiskies/:id").handler(this::deleteOne);
 		
 		vertx
@@ -122,52 +118,95 @@ public class MyFirstVerticle extends AbstractVerticle {
 		return routingContext.currentRoute();
 	}
 	
-	private void getAll(RoutingContext routingContext) {
-		System.out.println("Getting all whiskies");
-	  routingContext.response()
-		  .putHeader("content-type", "application/json; charset=utf-8")
-		  .end(Json.encodePrettily(products.values()));
-	}
-	
-	private void getOne(RoutingContext routingContext) {
-		String id = routingContext.request().getParam("id");
-		if (id == null) {
-			routingContext.response().setStatusCode(400).end();
-		} else {
-			final Integer idAsInteger = Integer.valueOf(id);
-			Whisky whisky = products.get(idAsInteger);
-			if (whisky == null) {
-				routingContext.response().setStatusCode(400).end();
-			} else {
-				routingContext.response()
-					.putHeader("content-type", "application/json; charset=utf-8")
-					.end(Json.encodePrettily(whisky));
-			}
-		}
-	}
-	
-	private void addOne(RoutingContext routingContext) {
-		System.out.println("routingContext.getBodyAsString() = " +
-			routingContext.getBodyAsString());
-	  final Whisky whisky = Json.decodeValue(routingContext.getBodyAsString(),
-		  Whisky.class);
-	  products.put(whisky.getId(), whisky);
-	  routingContext.response()
-		  .setStatusCode(201)
-		  .putHeader("content-type", "application/json; charset=utf-8")
-		  .end(Json.encodePrettily(whisky));
-	}
-	
-	private void deleteOne(RoutingContext routingContext) {
-		String id = routingContext.request().getParam("id");
-		if (id == null) {
-			routingContext.response().setStatusCode(400).end();
-		} else {
-			Integer idAsInteger = Integer.valueOf(id);
-			products.remove(idAsInteger);
-		}
-		routingContext.response().setStatusCode(204).end();
-	}
+  private void addOne(RoutingContext routingContext) {
+    jdbc.getConnection(ar -> {
+      // Read the request's content and create an instance of Whisky.
+      final Whisky whisky = Json.decodeValue(routingContext.getBodyAsString(),
+          Whisky.class);
+      SQLConnection connection = ar.result();
+      insert(whisky, connection, (r) ->
+          routingContext.response()
+              .setStatusCode(201)
+              .putHeader("content-type", "application/json; charset=utf-8")
+              .end(Json.encodePrettily(r.result())));
+          connection.close();
+    });
+
+  }
+
+  private void getOne(RoutingContext routingContext) {
+    final String id = routingContext.request().getParam("id");
+    if (id == null) {
+      routingContext.response().setStatusCode(400).end();
+    } else {
+      jdbc.getConnection(ar -> {
+        // Read the request's content and create an instance of Whisky.
+        SQLConnection connection = ar.result();
+        select(id, connection, result -> {
+          if (result.succeeded()) {
+            routingContext.response()
+                .setStatusCode(200)
+                .putHeader("content-type", "application/json; charset=utf-8")
+                .end(Json.encodePrettily(result.result()));
+          } else {
+            routingContext.response()
+                .setStatusCode(404).end();
+          }
+          connection.close();
+        });
+      });
+    }
+  }
+
+  private void updateOne(RoutingContext routingContext) {
+    final String id = routingContext.request().getParam("id");
+    JsonObject json = routingContext.getBodyAsJson();
+    if (id == null || json == null) {
+      routingContext.response().setStatusCode(400).end();
+    } else {
+      jdbc.getConnection(ar ->
+          update(id, json, ar.result(), (whisky) -> {
+            if (whisky.failed()) {
+              routingContext.response().setStatusCode(404).end();
+            } else {
+              routingContext.response()
+                  .putHeader("content-type", "application/json; charset=utf-8")
+                  .end(Json.encodePrettily(whisky.result()));
+            }
+            ar.result().close();
+          })
+      );
+    }
+  }
+
+  private void deleteOne(RoutingContext routingContext) {
+    String id = routingContext.request().getParam("id");
+    if (id == null) {
+      routingContext.response().setStatusCode(400).end();
+    } else {
+      jdbc.getConnection(ar -> {
+        SQLConnection connection = ar.result();
+        connection.execute("DELETE FROM Whisky WHERE id='" + id + "'",
+            result -> {
+              routingContext.response().setStatusCode(204).end();
+              connection.close();
+            });
+      });
+    }
+  }
+
+  private void getAll(RoutingContext routingContext) {
+    jdbc.getConnection(ar -> {
+      SQLConnection connection = ar.result();
+      connection.query("SELECT * FROM Whisky", result -> {
+        List<Whisky> whiskies = result.result().getRows().stream().map(Whisky::new).collect(Collectors.toList());
+        routingContext.response()
+            .putHeader("content-type", "application/json; charset=utf-8")
+            .end(Json.encodePrettily(whiskies));
+        connection.close();
+      });
+    });
+  }
 	
 	@Override
 	  public void stop() throws Exception {
