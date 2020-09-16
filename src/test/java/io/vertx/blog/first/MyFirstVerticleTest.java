@@ -34,7 +34,11 @@ public class MyFirstVerticleTest {
 		System.out.println(++counter + ") Running on port: " + port);
 		
 		DeploymentOptions options = new DeploymentOptions()
-			.setConfig(new JsonObject().put("http_port", port));
+			.setConfig(new JsonObject()
+				.put("http.port", port)
+				.put("url", "jdbc:hsqldb:mem:test?shutdown=true")
+				.put("driver_class", "org.hsqldb.jdbcDriver")
+			);
 			
 		vertx = Vertx.vertx();
 		vertx.deployVerticle(MyFirstVerticle.class.getName(),
@@ -67,7 +71,8 @@ public class MyFirstVerticleTest {
 		getNow("/assets/index.html",
 			response -> {
 				context.assertEquals(response.statusCode(), 200);
-				context.assertEquals(response.headers().get("content-type"), "text/html");
+				context.assertTrue(response.headers().get("content-type")
+					.contains("text/html"));
 				response.bodyHandler(body -> {
 					context.assertTrue(body.toString()
 						.contains("<title>My Whisky Collection</title>"));

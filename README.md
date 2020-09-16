@@ -5,7 +5,7 @@
  2. [Vert.x Application Configuration](https://vertx.io/blog/vert-x-application-configuration/)
  3. [Some Rest with Vert.x](https://vertx.io/blog/some-rest-with-vert-x/)
  4. [Unit and Integration Tests](https://vertx.io/blog/unit-and-integration-tests/)
-
+ 5. [Using the asynchronous SQL client](https://vertx.io/blog/using-the-asynchronous-sql-client/)
 
 
 
