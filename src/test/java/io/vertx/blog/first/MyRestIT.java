@@ -13,14 +13,8 @@ public class MyRestIT {
 	
 	@BeforeClass
 	public static void configureRestAssured() {
-		try {
-			Thread.sleep(500);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 		RestAssured.baseURI = "http://localhost";
-		// RestAssured.port = Integer.getInteger("http_port", 8080);
-		RestAssured.port = 8080;
+		RestAssured.port = Integer.getInteger("http.port", 8082);
 		
 		System.out.printf("RestAssured will try to connect to: %s:%s\n",
 				RestAssured.baseURI, RestAssured.port);

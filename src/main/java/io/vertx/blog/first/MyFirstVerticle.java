@@ -24,7 +24,11 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.handler.BodyHandler;
 import io.vertx.ext.web.handler.StaticHandler;
 
+import org.apache.log4j.Logger;
+
 public class MyFirstVerticle extends AbstractVerticle {
+	
+	 static Logger logger = Logger.getLogger(MyFirstVerticle.class);
 	
 	private Map<Integer, Whisky> products = new LinkedHashMap<>();
 	private int port;
@@ -50,6 +54,7 @@ public class MyFirstVerticle extends AbstractVerticle {
 		jdbc.getConnection(ar -> {
 		  if (ar.failed()) {
 			fut.fail(ar.cause());
+			logger.error("Failed to start backend. Cause: " + ar.cause());
 		  } else {
 			next.handle(Future.succeededFuture(ar.result()));
 		  }
@@ -60,6 +65,7 @@ public class MyFirstVerticle extends AbstractVerticle {
 		if (http.succeeded()) {
 		  fut.complete();
 		} else {
+		  logger.error(http.cause());
 		  fut.fail(http.cause());
 		}
 	}	
@@ -94,10 +100,12 @@ public class MyFirstVerticle extends AbstractVerticle {
 				port,
 				next::handle
 			);
-			
-		System.out.println("*************************************** " +
+		
+		String startInfo = "*************************************** " +
 				"Vertx Application Started on port: " + port +
-				" *************************");
+				" *************************";
+		System.out.println(startInfo);
+		logger.info(startInfo);
 	}
 	
 	private Route getHi(RoutingContext routingContext) {
@@ -199,7 +207,8 @@ public class MyFirstVerticle extends AbstractVerticle {
     jdbc.getConnection(ar -> {
       SQLConnection connection = ar.result();
       connection.query("SELECT * FROM Whisky", result -> {
-        List<Whisky> whiskies = result.result().getRows().stream().map(Whisky::new).collect(Collectors.toList());
+        List<Whisky> whiskies = result.result().getRows()
+			.stream().map(Whisky::new).collect(Collectors.toList());
         routingContext.response()
             .putHeader("content-type", "application/json; charset=utf-8")
             .end(Json.encodePrettily(whiskies));

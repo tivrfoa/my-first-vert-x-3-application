@@ -26,6 +26,7 @@ public class Whisky {
   }
 
   public Whisky(JsonObject json) {
+	  System.out.println("Creating Whisky using JsonObject ...");
     this.name = json.getString("NAME");
     this.origin = json.getString("ORIGIN");
     this.id = json.getInteger("ID");

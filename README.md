@@ -6,13 +6,24 @@
  3. [Some Rest with Vert.x](https://vertx.io/blog/some-rest-with-vert-x/)
  4. [Unit and Integration Tests](https://vertx.io/blog/unit-and-integration-tests/)
  5. [Using the asynchronous SQL client](https://vertx.io/blog/using-the-asynchronous-sql-client/)
-
+ 6. [Combine vert.x and mongo to build a giant](https://vertx.io/blog/combine-vert-x-and-mongo-to-build-a-giant/)
 
 
 
 ### Running the application with a configuration file
 
 ```
-java -jar target/my-first-app-1.0-SNAPSHOT-fat.jar -conf src/main/conf/my-application-conf.json
+java -jar target/my-first-app-1.2.0-fat.jar -conf target/classes/vertx-conf.json
 ```
 
+### Running Unit Tests
+
+```shell
+mvn test
+```
+
+### Running Integration Tests
+
+```shell
+mvn verify
+```
