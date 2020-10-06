@@ -13,7 +13,7 @@
 ### Running the application with a configuration file
 
 ```
-java -jar target/my-first-app-1.2.0-fat.jar -conf target/classes/vertx-conf.json
+java -jar target/my-first-app-1.3.0-fat.jar -conf target/classes/vertx-conf.json
 ```
 
 ### Running Unit Tests

@@ -44,7 +44,7 @@ public class MyRestIT {
 		
 		System.out.println(whisky);
 		  
-		final int id = whisky.getId();
+		final String id = whisky.getId();
 		
 		System.out.println("Got whisky id: " + id);
 		
